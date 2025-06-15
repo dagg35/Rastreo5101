@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Ruta del Camión</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; }
+    #map { height: 100%; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map('map').setView([13.7, -89.2], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const truckIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
+      popupAnchor: [0, -20]
+    });
+
+    let marker = null;
+    let routeCoords = [];
+    const polyline = L.polyline(routeCoords, { color: 'blue' }).addTo(map);
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.watchPosition(position => {
+        const { latitude, longitude } = position.coords;
+        const coords = [latitude, longitude];
+
+        routeCoords.push(coords);           // Agrega el punto a la ruta
+        polyline.setLatLngs(routeCoords);   // Redibuja la línea
+
+        if (!marker) {
+          marker = L.marker(coords, { icon: truckIcon }).addTo(map).bindPopup("Camión aquí");
+        } else {
+          marker.setLatLng(coords);
+        }
+
+        map.panTo(coords);
+      }, error => {
+        console.error("Error de geolocalización:", error);
+        alert("No se pudo obtener la ubicación.");
+      }, {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 5000
+      });
+    } else {
+      alert("Tu navegador no permite geolocalización.");
+    }
+  </script>
+
+</body>
+</html>
